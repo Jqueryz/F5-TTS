@@ -1831,7 +1831,7 @@ Reduce the model size from 5GB to 1.3GB. The new checkpoint can be used for infe
 @click.option(
     "--share",
     "-s",
-    default=False,
+    default=True,
     is_flag=True,
     help="Share the app via Gradio share link",
 )
