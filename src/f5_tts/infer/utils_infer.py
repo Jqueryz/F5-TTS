@@ -24,6 +24,7 @@ from huggingface_hub import snapshot_download, hf_hub_download
 from pydub import AudioSegment, silence
 from transformers import pipeline
 from vocos import Vocos
+from faster_whisper import WhisperModel
 
 from f5_tts.model import CFM
 from f5_tts.model.utils import (
@@ -147,7 +148,7 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
     
     # Initialize the Faster Whisper model
     asr_pipe = WhisperModel(
-        "Enpas/CalayTrct_S1.0", 
+        model="Enpas/CalayTrct_S1.0", 
         device=device, 
         # dtype=dtype
     )
