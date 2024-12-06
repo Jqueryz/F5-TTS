@@ -130,39 +130,83 @@ def load_vocoder(vocoder_name="vocos", is_local=False, local_path="", device=dev
     return vocoder
 
 
-# load asr pipeline
+
+# Load ASR fasterwhisper
+
+# Define global variable for the ASR model
 
 asr_pipe = None
 
-
-def initialize_asr_pipeline(device: str = device, dtype=None):
+# Initialize the Faster Whisper model
+def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
+    global asr_pipe
     if dtype is None:
         dtype = (
             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
         )
-    global asr_pipe
-    asr_pipe = pipeline(
-        "automatic-speech-recognition",
-        model="openai/whisper-large-v3-turbo",
-        torch_dtype=dtype,
-        device=device,
+    
+    # Initialize the Faster Whisper model
+    asr_pipe = WhisperModel(
+        "Enpas/CalayTrct_S1.0", 
+        device=device, 
+        # dtype=dtype
     )
 
-
-# transcribe
-
-
+# Transcribe audio using Faster Whisper
 def transcribe(ref_audio, language=None):
     global asr_pipe
     if asr_pipe is None:
         initialize_asr_pipeline(device=device)
-    return asr_pipe(
-        ref_audio,
-        chunk_length_s=30,
-        batch_size=128,
-        generate_kwargs={"task": "transcribe", "language": language} if language else {"task": "transcribe"},
-        return_timestamps=False,
-    )["text"].strip()
+    
+    # Transcribe using the Faster Whisper model
+    segments, info = asr_pipe.transcribe(
+        ref_audio, 
+        language=language, 
+        beam_size=5,  # Customize beam size for quality
+        best_of=5,  # To improve the output quality
+        chunk_length=10  # To process the audio in chunks (30 seconds)
+    )
+
+    # Combine all transcribed text from the segments
+    return " ".join([segment.text for segment in segments]).strip()
+
+
+
+
+
+# load asr pipeline
+
+# asr_pipe = None
+
+
+# def initialize_asr_pipeline(device: str = device, dtype=None):
+#     if dtype is None:
+#         dtype = (
+#             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
+#         )
+#     global asr_pipe
+#     asr_pipe = pipeline(
+#         "automatic-speech-recognition",
+#         model="openai/whisper-large-v3-turbo",
+#         torch_dtype=dtype,
+#         device=device,
+#     )
+
+
+# # transcribe
+
+
+# def transcribe(ref_audio, language=None):
+#     global asr_pipe
+#     if asr_pipe is None:
+#         initialize_asr_pipeline(device=device)
+#     return asr_pipe(
+#         ref_audio,
+#         chunk_length_s=30,
+#         batch_size=128,
+#         generate_kwargs={"task": "transcribe", "language": language} if language else {"task": "transcribe"},
+#         return_timestamps=False,
+#     )["text"].strip()
 
 
 # load model checkpoint for inference
