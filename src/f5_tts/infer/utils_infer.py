@@ -148,9 +148,9 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
     
     # Initialize the Faster Whisper model
     asr_pipe = WhisperModel(
-        model="Enpas/CalayTrct_S1.0", 
+        "Enpas/CalayTrct_S1.0", 
         device=device, 
-        # dtype=dtype
+        dtype=dtype
     )
 
 # Transcribe audio using Faster Whisper
