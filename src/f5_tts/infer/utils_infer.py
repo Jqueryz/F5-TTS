@@ -140,39 +140,17 @@ asr_pipe = None
 
 # Initialize the Faster Whisper model
 def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
-    global asr_pipe
     if dtype is None:
         dtype = (
             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
         )
-    
+    global asr_pipe
     # Initialize the Faster Whisper model
     asr_pipe = WhisperModel(
-        "Enpas/CalayTrct_S1.0", 
+        "Enpas/CalayTrct_S1.0",
         device=device, 
-        dtype=dtype
+        torch_dtype=dtype,
     )
-
-# Transcribe audio using Faster Whisper
-def transcribe(ref_audio, language=None):
-    global asr_pipe
-    if asr_pipe is None:
-        initialize_asr_pipeline(device=device)
-    
-    # Transcribe using the Faster Whisper model
-    segments, info = asr_pipe.transcribe(
-        ref_audio, 
-        language=language, 
-        beam_size=5,  # Customize beam size for quality
-        best_of=5,  # To improve the output quality
-        chunk_length=10  # To process the audio in chunks (30 seconds)
-    )
-
-    # Combine all transcribed text from the segments
-    return " ".join([segment.text for segment in segments]).strip()
-
-
-
 
 
 # load asr pipeline
@@ -192,6 +170,26 @@ def transcribe(ref_audio, language=None):
 #         torch_dtype=dtype,
 #         device=device,
 #     )
+
+
+
+# Transcribe audio using Faster Whisper
+def transcribe(ref_audio, language=None):
+    global asr_pipe
+    if asr_pipe is None:
+        initialize_asr_pipeline(device=device)
+    
+    # Transcribe using the Faster Whisper model
+    result = asr_pipe.transcribe(
+        ref_audio,
+        language=language,
+        batch_size=3,  # Customize batch size for quality
+        best_of=5,  # To improve the output quality
+        chunk_length=10  # To process the audio in chunks (10 seconds)
+    )
+    
+    # Combine all transcribed text from the segments
+    return " ".join([segment.text for segment in result["segments"]]).strip()
 
 
 # # transcribe
