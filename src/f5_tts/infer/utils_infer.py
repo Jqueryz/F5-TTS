@@ -187,6 +187,7 @@ def transcribe(ref_audio, language=None):
     
     # Join the segments into a single string
     text_str = " ".join(text)
+    print(text_str)
     return text_str
 
 
