@@ -133,7 +133,7 @@ def load_vocoder(vocoder_name="vocos", is_local=False, local_path="", device=dev
 
 
 # Load ASR fasterwhisper
-batched_model = None
+asr_pipe = None
 
 # Function to initialize the Faster Whisper model
 def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
@@ -144,8 +144,8 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
     global batched_model
     model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
     # Initialize the Faster Whisper model
-    asr_pipe = WhisperModel(model, device=device)
-    batched_model = BatchedInferencePipeline(model=model)
+    whisper = WhisperModel(model, device=device)
+    asr_pipe = BatchedInferencePipeline(model=whisper, device=device)
 
 
 # load asr pipeline
@@ -167,13 +167,13 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
 
 # Transcribe audio using Faster Whisper
 def transcribe(ref_audio, language=None):
-    global batched_model
+    global asr_pipe
     # Initialize the model if it's not already initialized
-    if batched_model is None:
+    if asr_pipe is None:
         initialize_asr_pipeline(device=device)
     
     # Perform the transcription using the Faster Whisper model
-    result, _ = batched_model.transcribe(
+    result, _ = asr_pipe.transcribe(
         ref_audio,
         language=language,
         beam_size=5,
