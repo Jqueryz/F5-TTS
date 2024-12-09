@@ -145,9 +145,10 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
         )
     global asr_pipe
+    model = "Enpas/CalayTrct_S1.0"
     # Initialize the Faster Whisper model
     asr_pipe = WhisperModel(
-        "Enpas/CalayTrct_S1.0",
+        model,
         device=device, 
         torch_dtype=dtype,
     )
