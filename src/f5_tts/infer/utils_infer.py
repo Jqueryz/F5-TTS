@@ -184,7 +184,7 @@ def transcribe(ref_audio, language=None):
     result = asr_pipe.transcribe(
         ref_audio,
         language=language,
-        batch_size=3,  # Customize batch size for quality
+        beam_size=3,  # Customize batch size for quality
         best_of=5,  # To improve the output quality
         chunk_length=10  # To process the audio in chunks (10 seconds)
     )
