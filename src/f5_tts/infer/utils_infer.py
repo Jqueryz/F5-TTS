@@ -133,32 +133,23 @@ def load_vocoder(vocoder_name="vocos", is_local=False, local_path="", device=dev
 
 
 # Load ASR fasterwhisper
+batched_model = None
 
-# Define global variable for the ASR model
-
-asr_pipe = None
-
-# Initialize the Faster Whisper model
+# Function to initialize the Faster Whisper model
 def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
     if dtype is None:
         dtype = (
             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
         )
-    global asr_pipe
-    model = "Enpas/CalayTrct_S1.0"
+    global batched_model
+    model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
     # Initialize the Faster Whisper model
-    asr_pipe = WhisperModel(
-        model,
-        device=device, 
-        torch_dtype=dtype,
-    )
+    asr_pipe = WhisperModel(model, device=device)
+    batched_model = BatchedInferencePipeline(model=model)
 
 
 # load asr pipeline
-
 # asr_pipe = None
-
-
 # def initialize_asr_pipeline(device: str = device, dtype=None):
 #     if dtype is None:
 #         dtype = (
@@ -176,26 +167,30 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
 
 # Transcribe audio using Faster Whisper
 def transcribe(ref_audio, language=None):
-    global asr_pipe
-    if asr_pipe is None:
+    global batched_model
+    # Initialize the model if it's not already initialized
+    if batched_model is None:
         initialize_asr_pipeline(device=device)
     
-    # Transcribe using the Faster Whisper model
-    result = asr_pipe.transcribe(
+    # Perform the transcription using the Faster Whisper model
+    result, _ = batched_model.transcribe(
         ref_audio,
         language=language,
-        beam_size=3,  # Customize batch size for quality
-        best_of=5,  # To improve the output quality
-        chunk_length=10  # To process the audio in chunks (10 seconds)
+        beam_size=5,
+        batch_size = 10,  # Customize batch size for quality
+        best_of=5,    # To improve output quality
+        chunk_length=10  # Process audio in chunks of 10 seconds
     )
     
-    # Combine all transcribed text from the segments
-    return " ".join([segment.text for segment in result["segments"]]).strip()
+    # Extract and print only the transcribed text
+    text = [segment.text for segment in result]
+    
+    # Join the segments into a single string
+    text_str = " ".join(text)
+    return text_str
 
 
 # # transcribe
-
-
 # def transcribe(ref_audio, language=None):
 #     global asr_pipe
 #     if asr_pipe is None:
@@ -207,6 +202,9 @@ def transcribe(ref_audio, language=None):
 #         generate_kwargs={"task": "transcribe", "language": language} if language else {"task": "transcribe"},
 #         return_timestamps=False,
 #     )["text"].strip()
+
+
+
 
 
 # load model checkpoint for inference
