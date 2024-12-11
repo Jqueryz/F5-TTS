@@ -173,7 +173,7 @@ def transcribe(ref_audio, language=None):
         initialize_asr_pipeline(device=device)
     
     # Perform the transcription using the Faster Whisper model
-    result, _ = asr_pipe.transcribe(
+    result, info = asr_pipe.transcribe(
         ref_audio,
         language=language,
         beam_size=5,
