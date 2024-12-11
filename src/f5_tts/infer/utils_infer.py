@@ -145,7 +145,7 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
     model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
     # Initialize the Faster Whisper model
     whisper = WhisperModel(model, device=device)
-    asr_pipe = BatchedInferencePipeline(model=whisper, device=device)
+    asr_pipe = BatchedInferencePipeline(model=whisper)
 
 
 # load asr pipeline
