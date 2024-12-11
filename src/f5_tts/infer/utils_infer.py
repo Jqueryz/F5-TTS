@@ -144,7 +144,7 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
     global asr_pipe
     model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
     # Initialize the Faster Whisper model
-    whisper = WhisperModel(model, device=device)
+    whisper = WhisperModel(model, device="cuda")
     asr_pipe = BatchedInferencePipeline(model=whisper)
 
 
@@ -170,7 +170,7 @@ def transcribe(ref_audio, language=None):
     global asr_pipe
     # Initialize the model if it's not already initialized
     if asr_pipe is None:
-        initialize_asr_pipeline(device=device)  # or use 'cpu' if you don't have a CUDA-enabled GPU
+        initialize_asr_pipeline(device="cuda")  # or use 'cpu' if you don't have a CUDA-enabled GPU
     
     # Perform the transcription using the Faster Whisper model
     segments, _ = asr_pipe.transcribe(
