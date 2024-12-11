@@ -170,18 +170,21 @@ def transcribe(ref_audio, language=None):
     global asr_pipe
     # Initialize the model if it's not already initialized
     if asr_pipe is None:
-        initialize_asr_pipeline(device=device)
-    # Perform the transcription using the Faster Whisper model and return the text directly
-    return " ".join(
-        segment.text for segment in asr_pipe.transcribe(
-            ref_audio,
-            language=language,
-            beam_size=5,
-            batch_size=10,  # Customize batch size for quality
-            best_of=5,      # To improve output quality
-            chunk_length=10  # Process audio in chunks of 10 seconds
-        )
-    ).strip()
+        initialize_asr_pipeline(device=device)  # or use 'cpu' if you don't have a CUDA-enabled GPU
+    
+    # Perform the transcription using the Faster Whisper model
+    segments, _ = asr_pipe.transcribe(
+        ref_audio,
+        language=language,
+        beam_size=5,
+        batch_size=10,  # Customize batch size for quality
+        best_of=5,      # To improve output quality
+        chunk_length=10  # Process audio in chunks of 10 seconds
+    )
+    
+    # Extract text from the segments
+    return " ".join(segment.text for segment in segments).strip()
+
 
 # transcribe
 # def transcribe(ref_audio, language=None):
