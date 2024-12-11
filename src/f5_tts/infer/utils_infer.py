@@ -24,6 +24,7 @@ from huggingface_hub import snapshot_download, hf_hub_download
 from pydub import AudioSegment, silence
 from transformers import pipeline
 from vocos import Vocos
+from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from f5_tts.model import CFM
 from f5_tts.model.utils import (
