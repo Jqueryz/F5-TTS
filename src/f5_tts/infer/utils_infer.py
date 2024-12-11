@@ -24,7 +24,6 @@ from huggingface_hub import snapshot_download, hf_hub_download
 from pydub import AudioSegment, silence
 from transformers import pipeline
 from vocos import Vocos
-from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from f5_tts.model import CFM
 from f5_tts.model.utils import (
@@ -141,7 +140,7 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
         dtype = (
             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
         )
-    global batched_model
+    global asr_pipe
     model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
     # Initialize the Faster Whisper model
     whisper = WhisperModel(model, device=device)
@@ -171,25 +170,17 @@ def transcribe(ref_audio, language=None):
     # Initialize the model if it's not already initialized
     if asr_pipe is None:
         initialize_asr_pipeline(device=device)
-    
-    # Perform the transcription using the Faster Whisper model
-    result, info = asr_pipe.transcribe(
-        ref_audio,
-        language=language,
-        beam_size=5,
-        batch_size = 10,  # Customize batch size for quality
-        best_of=5,    # To improve output quality
-        chunk_length=10  # Process audio in chunks of 10 seconds
-    )
-    
-    # Extract and print only the transcribed text
-    text = [segment.text for segment in result]
-    
-    # Join the segments into a single string
-    text_str = " ".join(text)
-    print(text_str)
-    return text_str
-
+    # Perform the transcription using the Faster Whisper model and return the text directly
+    return " ".join(
+        segment.text for segment in asr_pipe.transcribe(
+            ref_audio,
+            language=language,
+            beam_size=5,
+            batch_size=10,  # Customize batch size for quality
+            best_of=5,      # To improve output quality
+            chunk_length=10  # Process audio in chunks of 10 seconds
+        )
+    ).strip()
 
 # transcribe
 # def transcribe(ref_audio, language=None):
