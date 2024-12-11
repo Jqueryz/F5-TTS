@@ -24,7 +24,7 @@ from huggingface_hub import snapshot_download, hf_hub_download
 from pydub import AudioSegment, silence
 from transformers import pipeline
 from vocos import Vocos
-from faster_whisper import WhisperModel
+from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from f5_tts.model import CFM
 from f5_tts.model.utils import (
@@ -133,77 +133,77 @@ def load_vocoder(vocoder_name="vocos", is_local=False, local_path="", device=dev
 
 
 # Load ASR fasterwhisper
-# asr_pipe = None
-
-# # Function to initialize the Faster Whisper model
-# def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
-#     if dtype is None:
-#         dtype = (
-#             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
-#         )
-#     global batched_model
-#     model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
-#     # Initialize the Faster Whisper model
-#     whisper = WhisperModel(model, device=device)
-#     asr_pipe = BatchedInferencePipeline(model=whisper, device=device)
-
-
-# load asr pipeline
 asr_pipe = None
-def initialize_asr_pipeline(device: str = device, dtype=None):
+
+# Function to initialize the Faster Whisper model
+def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
     if dtype is None:
         dtype = (
             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
         )
-    global asr_pipe
-    asr_pipe = pipeline(
-        "automatic-speech-recognition",
-        model="openai/whisper-base",
-        torch_dtype=dtype,
-        device=device,
-    )
+    global batched_model
+    model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
+    # Initialize the Faster Whisper model
+    whisper = WhisperModel(model, device=device)
+    asr_pipe = BatchedInferencePipeline(model=whisper, device=device)
+
+
+# load asr pipeline
+# asr_pipe = None
+# def initialize_asr_pipeline(device: str = device, dtype=None):
+#     if dtype is None:
+#         dtype = (
+#             torch.float16 if "cuda" in device and torch.cuda.get_device_properties(device).major >= 6 else torch.float32
+#         )
+#     global asr_pipe
+#     asr_pipe = pipeline(
+#         "automatic-speech-recognition",
+#         model="openai/whisper-base",
+#         torch_dtype=dtype,
+#         device=device,
+#     )
 
 
 
 # Transcribe audio using Faster Whisper
-# def transcribe(ref_audio, language=None):
-#     global asr_pipe
-#     # Initialize the model if it's not already initialized
-#     if asr_pipe is None:
-#         initialize_asr_pipeline(device=device)
-    
-#     # Perform the transcription using the Faster Whisper model
-#     result, _ = asr_pipe.transcribe(
-#         ref_audio,
-#         language=language,
-#         beam_size=5,
-#         batch_size = 10,  # Customize batch size for quality
-#         best_of=5,    # To improve output quality
-#         chunk_length=10  # Process audio in chunks of 10 seconds
-#     )
-    
-#     # Extract and print only the transcribed text
-#     text = [segment.text for segment in result]
-    
-#     # Join the segments into a single string
-#     text_str = " ".join(text)
-#     print(text_str)
-#     return text_str
-
-
-# # transcribe
 def transcribe(ref_audio, language=None):
     global asr_pipe
+    # Initialize the model if it's not already initialized
     if asr_pipe is None:
         initialize_asr_pipeline(device=device)
-    return asr_pipe(
+    
+    # Perform the transcription using the Faster Whisper model
+    result, _ = asr_pipe.transcribe(
         ref_audio,
-        chunk_length_s=30,
-        batch_size=128,
-        generate_kwargs={"task": "transcribe", "language": language} if language else {"task": "transcribe"},
-        return_timestamps=False,
-    )["text"].strip()
-    print(asr_pipe)
+        language=language,
+        beam_size=5,
+        batch_size = 10,  # Customize batch size for quality
+        best_of=5,    # To improve output quality
+        chunk_length=10  # Process audio in chunks of 10 seconds
+    )
+    
+    # Extract and print only the transcribed text
+    text = [segment.text for segment in result]
+    
+    # Join the segments into a single string
+    text_str = " ".join(text)
+    print(text_str)
+    return text_str
+
+
+# transcribe
+# def transcribe(ref_audio, language=None):
+#     global asr_pipe
+#     if asr_pipe is None:
+#         initialize_asr_pipeline(device=device)
+#     return asr_pipe(
+#         ref_audio,
+#         chunk_length_s=30,
+#         batch_size=128,
+#         generate_kwargs={"task": "transcribe", "language": language} if language else {"task": "transcribe"},
+#         return_timestamps=False,
+#     )["text"].strip()
+#     print(asr_pipe)
 
 
 
