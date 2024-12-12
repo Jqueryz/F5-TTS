@@ -373,7 +373,7 @@ def infer_process(
     device=device,
 ):
     # Split the input text into batches
-    audio, sr = torchaudio.load(ref_audio)
+    audio, sr = torchaudio.load(ref_audio, backend="soundfile")
     max_chars = int(len(ref_text.encode("utf-8")) / (audio.shape[-1] / sr) * (25 - audio.shape[-1] / sr))
     gen_text_batches = chunk_text(gen_text, max_chars=max_chars)
     for i, gen_text in enumerate(gen_text_batches):
