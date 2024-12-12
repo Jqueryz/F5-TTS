@@ -143,8 +143,7 @@ def initialize_asr_pipeline(device: str = 'cuda', dtype=None):
         )
     global asr_pipe
     model = "Enpas/CalayTrct_S1.0"  # Specify the model to use
-    # Initialize the Faster Whisper model
-    whisper = WhisperModel(model, device="cuda")
+    whisper = WhisperModel(model, device="cuda", compute_type="float16")
     asr_pipe = BatchedInferencePipeline(model=whisper)
 
 
@@ -176,9 +175,7 @@ def transcribe(ref_audio, language=None):
     segments, _ = asr_pipe.transcribe(
         ref_audio,
         language=language,
-        beam_size=5,
-        batch_size=10,  # Customize batch size for quality
-        best_of=5,      # To improve output quality
+        batch_size=256,  # Customize batch size for quality
         chunk_length=10  # Process audio in chunks of 10 seconds
     )
     
