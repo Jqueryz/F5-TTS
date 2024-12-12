@@ -5,6 +5,7 @@ from importlib.resources import files
 import soundfile as sf
 import tqdm
 from cached_path import cached_path
+from faster_whisper import WhisperModel, BatchedInferencePipeline
 
 from f5_tts.infer.utils_infer import (
     hop_length,
